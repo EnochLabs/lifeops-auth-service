@@ -1,0 +1,119 @@
+version: "3.11.9"
+
+name: lifeops-auth-service
+
+x-auth-env: &auth_env
+  SERVICE_HOST: ${SERVICE_HOST:-0.0.0.0}
+  SERVICE_PORT: ${SERVICE_PORT:-8001}
+  ENVIRONMENT: ${ENVIRONMENT:-development}
+  MONGODB_URL: ${MONGODB_URL:-mongodb://mongo:27017}
+  MONGODB_DB: ${MONGODB_DB:-lifeops_auth}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-/run/secrets/jwt_private_key.pem}
+  JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-/run/secrets/jwt_public_key.pem}
+  JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
+  JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+  JWT_REFRESH_TOKEN_EXPIRE_DAYS: ${JWT_REFRESH_TOKEN_EXPIRE_DAYS:-30}
+  INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-this-to-a-long-random-string}
+  COOKIE_SECURE: ${COOKIE_SECURE:-false}
+  COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
+  CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+  TRIAL_DURATION_DAYS: ${TRIAL_DURATION_DAYS:-7}
+  TRIAL_PLAN: ${TRIAL_PLAN:-PRO}
+  SUBSCRIPTION_GRACE_PERIOD_DAYS: ${SUBSCRIPTION_GRACE_PERIOD_DAYS:-3}
+
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lifeops/auth-service:local
+    container_name: lifeops-auth-service
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment: *auth_env
+    ports:
+      - "${SERVICE_PORT:-8001}:${SERVICE_PORT:-8001}"
+    secrets:
+      - jwt_private_key
+      - jwt_public_key
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8001/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - lifeops-auth-net
+
+  mongo:
+    image: mongo:7.0
+    container_name: lifeops-auth-mongo
+    restart: unless-stopped
+    command: ["--bind_ip_all"]
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DB:-lifeops_auth}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 10s
+    networks:
+      - lifeops-auth-net
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: lifeops-auth-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 8
+      start_period: 5s
+    networks:
+      - lifeops-auth-net
+
+  nginx-proxy:
+    image: nginx:1.25-alpine
+    container_name: lifeops-auth-proxy
+    restart: unless-stopped
+    profiles: ["proxy"]
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      auth-service:
+        condition: service_started
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/certs:/etc/nginx/certs:ro
+    networks:
+      - lifeops-auth-net
+
+volumes:
+  mongo_data:
+  redis_data:
+
+secrets:
+  jwt_private_key:
+    file: ./secrets/jwt_private_key.pem
+  jwt_public_key:
+    file: ./secrets/jwt_public_key.pem
+
+networks:
+  lifeops-auth-net:
+    driver: bridge
