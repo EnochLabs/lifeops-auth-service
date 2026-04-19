@@ -50,7 +50,7 @@ orjson==3.11.8
 typing_extensions==4.15.0
 typing-inspection==0.4.2
 annotated-types==0.7.0
-
+bandit==1.8.3
 # ----------------------------
 # TESTING (IMPORTANT FIX)
 # ----------------------------
