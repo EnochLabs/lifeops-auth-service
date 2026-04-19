@@ -21,7 +21,7 @@ def create_app() -> FastAPI:
     # Set up CORS
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Adjust in production
+        allow_origins=["*"],  # TODO: restrict in production
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -43,8 +43,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.PORT, reload=settings.DEBUG)
