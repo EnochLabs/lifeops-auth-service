@@ -72,3 +72,7 @@ pre_commit==4.5.1
 commitizen==4.13.10
 pip-audit==2.10.0
 setuptools>=78.1.1
+debugpy==1.8.1
+types-redis==4.6.0.20241004
+
+
