@@ -1,8 +1,5 @@
-from datetime import datetime, timezone
-from typing import Optional
-
 from beanie import Document
-from pydantic import EmailStr, Field
+from pydantic import EmailStr
 
 
 class User(Document):

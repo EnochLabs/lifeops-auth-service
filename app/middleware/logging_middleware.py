@@ -22,7 +22,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             process_time = (time.time() - start_time) * 1000
             status_code = response.status_code
 
-            log_message = f"Request completed: {method} {url} - Status: {status_code} - Duration: {process_time:.2f}ms"
+            log_message = (
+                f"Request completed: {method} {url} - "
+                f"Status: {status_code} - "
+                f"Duration: {process_time:.2f}ms"
+            )
 
             if status_code >= 400:
                 logger.warning(log_message)
@@ -34,6 +38,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             process_time = (time.time() - start_time) * 1000
             logger.exception(
-                f"Request failed: {method} {url} - Error: {str(e)} - Duration: {process_time:.2f}ms"
+                f"Request failed: {method} {url} - "
+                f"Error: {str(e)} - "
+                f"Duration: {process_time:.2f}ms"
             )
             raise

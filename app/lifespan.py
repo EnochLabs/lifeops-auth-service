@@ -21,7 +21,9 @@ async def lifespan(app: FastAPI):
 
     models = [User, Subscription, RefreshToken, AuditLog]
 
-    await init_beanie(database=client[settings.DATABASE_NAME], document_models=models)
+    await init_beanie(
+        database=client[settings.DATABASE_NAME], document_models=models
+    )
     logger.info("Beanie initialized with models.")
 
     yield

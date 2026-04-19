@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
@@ -48,5 +48,8 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "app.main:app", host="0.0.0.0", port=settings.PORT, reload=settings.DEBUG
+        "app.main:app",
+        host="0.0.0.0",
+        port=settings.PORT,
+        reload=settings.DEBUG,
     )

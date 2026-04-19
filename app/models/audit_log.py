@@ -9,7 +9,9 @@ class AuditLog(Document):
     user_id: Optional[str] = None
     action: str
     metadata: Dict[str, Any]
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
 
     class Settings:
         name = "audit_logs"
