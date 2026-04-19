@@ -37,11 +37,18 @@ jobs:
       ENVIRONMENT: test
       SECRET_KEY: test-secret # pragma: allowlist secret
       ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      PYTHONPATH: src
 
     steps:
+      # -------------------------
+      # CHECKOUT
+      # -------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # -------------------------
+      # PYTHON SETUP
+      # -------------------------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -55,6 +62,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov bandit pip-audit
 
       # -------------------------
       # FORMAT CHECK
@@ -74,14 +82,17 @@ jobs:
       # TYPE CHECK
       # -------------------------
       - name: Type check (mypy)
-        run: mypy app/
+        run: mypy src/
 
       # -------------------------
-      # SECURITY SCANS
+      # SECURITY SCAN
       # -------------------------
       - name: Security scan (Bandit)
-        run: bandit -r app/ -ll
+        run: bandit -r src/ -ll
 
+      # -------------------------
+      # DEPENDENCY VULNERABILITY SCAN
+      # -------------------------
       - name: Dependency scan (pip-audit)
         run: pip-audit --ignore-vuln CVE-2025-71176
 
