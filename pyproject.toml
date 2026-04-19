@@ -20,17 +20,17 @@ description = "LifeOps Auth Service"
 requires-python = ">=3.11"
 
 # -------------------------
-# SETUPTOOLS (FIXED - proper package discovery)
+# SETUPTOOLS (src layout FIX)
 # -------------------------
 [tool.setuptools]
-package-dir = {"" = "."}
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["app*"]
 
 # -------------------------
-# BLACK (formatting)
+# BLACK
 # -------------------------
 [tool.black]
 line-length = 100
@@ -38,25 +38,26 @@ target-version = ["py311"]
 include = '\.pyi?$'
 exclude = '''
 /(
-    lifeopsenv
+    lifeopsvenv
   | venv
   | .venv
   | build
   | dist
   | __pycache__
   | .git
+  | htmlcov
 )/
 '''
 
 # -------------------------
-# ISORT (imports)
+# ISORT
 # -------------------------
 [tool.isort]
 profile = "black"
 line_length = 100
 multi_line_output = 3
 skip = [
-    "lifeopsenv",
+    "lifeopsvenv",
     "venv",
     ".venv",
     "build",
@@ -65,7 +66,7 @@ skip = [
 ]
 
 # -------------------------
-# MYPY (typing)
+# MYPY
 # -------------------------
 [tool.mypy]
 python_version = "3.11"
@@ -77,9 +78,10 @@ strict_optional = true
 show_error_codes = true
 
 # -------------------------
-# PYTEST (testing)
+# PYTEST (FIXED FOR CI + LOCAL)
 # -------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --strict-markers --disable-warnings"
 asyncio_mode = "auto"
+pythonpath = ["src"]
