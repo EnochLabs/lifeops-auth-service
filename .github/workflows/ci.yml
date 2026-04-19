@@ -1,0 +1,93 @@
+name: Auth Service CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MONGO_URI: mongodb://localhost:27017
+      REDIS_URL: redis://localhost:6379
+      ENVIRONMENT: test
+      SECRET_KEY: test-secret # pragma: allowlist secret
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+
+    steps:
+      # 📥 Checkout
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 🐍 Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # 📦 Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install \
+            pytest pytest-asyncio \
+            black isort flake8 mypy \
+            bandit pip-audit
+
+      # 🎨 Format check
+      - name: Check formatting (Black + isort)
+        run: |
+          black --check .
+          isort --check-only .
+
+      # 🧹 Lint
+      - name: Lint (flake8)
+        run: flake8 .
+
+      # 🧠 Type check
+      - name: Type check (mypy)
+        run: mypy app/
+
+      # 🔒 Security scan (Bandit)
+      - name: Security scan (Bandit)
+        run: bandit -r app/ -ll
+
+      # 📦 Dependency vulnerabilities
+      - name: Dependency scan (pip-audit)
+        run: pip-audit
+
+      # 🧪 Run tests
+      - name: Run tests
+        run: pytest -v --maxfail=1 --disable-warnings
+
+      # 📊 Optional: Coverage (recommended later)
+      # - name: Run tests with coverage
+      #   run: |
+      #     pip install pytest-cov
+      #     pytest --cov=app --cov-report=xml
