@@ -1,5 +1,7 @@
 import os
+
 import rsa
+
 
 def generate_keys(directory: str = "secrets"):
     """Generates RSA public and private keys."""
@@ -13,7 +15,7 @@ def generate_keys(directory: str = "secrets"):
         return
 
     print(f"Generating 2048-bit RSA keys in {directory}...")
-    (pubkey, privkey) = rsa.newkeys(2048)
+    pubkey, privkey = rsa.newkeys(2048)
 
     with open(priv_path, "wb") as f:
         f.write(privkey.save_pkcs1("PEM"))
@@ -23,6 +25,7 @@ def generate_keys(directory: str = "secrets"):
 
     print(f"Private key saved to: {priv_path}")
     print(f"Public key saved to: {pub_path}")
+
 
 if __name__ == "__main__":
     generate_keys()

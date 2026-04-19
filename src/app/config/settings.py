@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import AnyHttpUrl, TypeAdapter, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,7 +35,9 @@ class Settings(BaseSettings):
     COOKIE_SAMESITE: str = "lax"
 
     # CORS Settings
-    CORS_ALLOWED_ORIGINS: Union[str, List[AnyHttpUrl]] = ["http://localhost:3000"]
+    CORS_ALLOWED_ORIGINS: Union[str, List[AnyHttpUrl]] = [
+        TypeAdapter(AnyHttpUrl).validate_python("http://localhost:3000")
+    ]
 
     @field_validator("CORS_ALLOWED_ORIGINS", mode="before")
     @classmethod
