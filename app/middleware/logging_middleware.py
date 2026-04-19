@@ -1,7 +1,9 @@
 import time
+
 from fastapi import Request
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
+
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -31,5 +33,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             process_time = (time.time() - start_time) * 1000
-            logger.exception(f"Request failed: {method} {url} - Error: {str(e)} - Duration: {process_time:.2f}ms")
+            logger.exception(
+                f"Request failed: {method} {url} - Error: {str(e)} - Duration: {process_time:.2f}ms"
+            )
             raise

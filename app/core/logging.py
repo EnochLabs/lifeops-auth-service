@@ -1,7 +1,10 @@
-import sys
 import logging
+import sys
+
 from loguru import logger
+
 from app.config.settings import settings
+
 
 def setup_logging():
     # Intercept standard logging
@@ -17,7 +20,9 @@ def setup_logging():
                 frame = frame.f_back
                 depth += 1
 
-            logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+            logger.opt(depth=depth, exception=record.exc_info).log(
+                level, record.getMessage()
+            )
 
     # Replace standard logging with loguru
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)

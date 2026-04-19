@@ -1,14 +1,16 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from motor.motor_asyncio import AsyncIOMotorClient
+
 from beanie import init_beanie
+from fastapi import FastAPI
 from loguru import logger
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config.settings import settings
-from app.models.user import User
-from app.models.subscription import Subscription
-from app.models.refresh_token import RefreshToken
 from app.models.audit_log import AuditLog
+from app.models.refresh_token import RefreshToken
+from app.models.subscription import Subscription
+from app.models.user import User
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,10 +21,7 @@ async def lifespan(app: FastAPI):
 
     models = [User, Subscription, RefreshToken, AuditLog]
 
-    await init_beanie(
-        database=client[settings.DATABASE_NAME],
-        document_models=models
-    )
+    await init_beanie(database=client[settings.DATABASE_NAME], document_models=models)
     logger.info("Beanie initialized with models.")
 
     yield

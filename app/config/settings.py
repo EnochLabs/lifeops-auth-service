@@ -1,6 +1,8 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
 import os
+from typing import Optional
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     # App Settings
@@ -31,10 +33,8 @@ class Settings(BaseSettings):
     JSON_LOGS: bool = False
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=True,
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
     )
+
 
 settings = Settings()

@@ -1,12 +1,14 @@
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.config.settings import settings
 from app.core.logging import setup_logging
-from app.middleware.logging_middleware import LoggingMiddleware
 from app.lifespan import lifespan
+from app.middleware.logging_middleware import LoggingMiddleware
 
 # Setup logging configuration
 setup_logging()
+
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -34,18 +36,17 @@ def create_app() -> FastAPI:
             "status": "ok",
             "service": settings.APP_NAME,
             "environment": settings.ENVIRONMENT,
-            "version": "0.1.0"
+            "version": "0.1.0",
         }
 
     return app
+
 
 app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=settings.PORT,
-        reload=settings.DEBUG
+        "app.main:app", host="0.0.0.0", port=settings.PORT, reload=settings.DEBUG
     )
