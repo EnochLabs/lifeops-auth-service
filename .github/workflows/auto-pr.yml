@@ -1,0 +1,146 @@
+# .github/workflows/auto-pr.yml
+name: Auto Open PR
+
+on:
+  push:
+    branches:
+      - "feat/**"
+      - "fix/**"
+      - "chore/**"
+      - "docs/**"
+      - "refactor/**"
+      - "test/**"
+      - "ci/**"
+      - "perf/**"
+      - "build/**"
+
+permissions:
+  pull-requests: write
+  contents: read
+
+concurrency:
+  group: auto-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auto-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare git refs
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+
+      - name: Open or update PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          AUTHOR="${{ github.actor }}"
+
+          COMMIT_SHA=$(git log -1 --pretty=%h)
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+
+          COMMIT_COUNT=$(git rev-list --count origin/main...HEAD || echo "?")
+
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD \
+            | head -20 \
+            | sed 's/^/- /' || echo "- (unavailable)")
+
+          # ---- Title generation ----
+          RAW=$(echo "$BRANCH" | sed 's|.*/||' | sed 's/[-_]/ /g')
+
+          TYPE=$(echo "$RAW" | grep -oE '^(feat|feature|fix|chore|docs|refactor|test|ci|style|perf|build)' || true)
+          TYPE=${TYPE/feature/feat}
+
+          if [ -n "$TYPE" ]; then
+            REST=$(echo "$RAW" | sed "s/^$TYPE //")
+            TITLE="$TYPE: $REST"
+          else
+            TITLE="$RAW"
+          fi
+
+          # ---- PR Body ----
+          BODY=$(cat <<EOF
+## Summary
+> Auto-opened for \`$BRANCH\`. Update this description before merging.
+
+---
+
+## Changed Files
+$CHANGED_FILES
+
+---
+
+## CI Checklist
+| Check | Status |
+|-------|--------|
+| Formatting (Black + isort) | ⏳ Pending |
+| Lint (flake8) | ⏳ Pending |
+| Type check (mypy) | ⏳ Pending |
+| Security scan (Bandit) | ⏳ Pending |
+| Dependency scan (pip-audit) | ⏳ Pending |
+| Tests | ⏳ Pending |
+| CodeQL | ⏳ Pending |
+
+---
+
+## Metadata
+| Field | Value |
+|-------|-------|
+| Branch | \`$BRANCH\` |
+| Author | @$AUTHOR |
+| Commits | $COMMIT_COUNT |
+| Last commit | \`$COMMIT_SHA\` — $COMMIT_MSG |
+
+---
+
+## Merge Checklist
+- [ ] All CI checks passing
+- [ ] Commits are GPG signed
+- [ ] Description updated
+- [ ] No debug or test code left in
+EOF
+)
+
+          # ---- Check for existing PR ----
+          EXISTING=$(gh pr list \
+            --head "$BRANCH" \
+            --base main \
+            --json number \
+            --jq '.[0].number' || echo "")
+
+          if [ "$EXISTING" != "null" ] && [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING already exists — updating"
+            gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY"
+            echo "✓ PR #$EXISTING updated"
+          else
+            echo "Creating PR for branch: $BRANCH"
+
+            gh pr create \
+              --title "$TITLE" \
+              --body "$BODY" \
+              --base main \
+              --head "$BRANCH"
+
+            PR=$(gh pr list \
+              --head "$BRANCH" \
+              --base main \
+              --json number \
+              --jq '.[0].number')
+
+            # Assign author
+            gh pr edit "$PR" --add-assignee "$AUTHOR"
+
+            # Optional: add labels
+            gh pr edit "$PR" --add-label "auto-pr" || true
+
+            echo "✓ PR #$PR created and assigned to $AUTHOR"
+          fi
