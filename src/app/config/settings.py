@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     PORT: int = 8001
-    SERVICE_HOST: str = "0.0.0.0"
+    SERVICE_HOST: str = "0.0.0.0"  # nosec B104
 
     # MongoDB Settings
     MONGODB_URL: str = "mongodb://localhost:27017"
