@@ -2,3 +2,81 @@
 name = "cz_conventional_commits"
 version = "0.1.0"
 tag_format = "v$version"
+
+# -------------------------
+# BUILD SYSTEM (IMPORTANT for pip install -e .)
+# -------------------------
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+# -------------------------
+# PROJECT METADATA
+# -------------------------
+[project]
+name = "lifeops-auth-service"
+version = "0.1.0"
+description = "LifeOps Auth Service"
+requires-python = ">=3.11"
+
+# -------------------------
+# SETUPTOOLS (fix packaging + import issues)
+# -------------------------
+[tool.setuptools]
+packages = ["app"]
+
+# -------------------------
+# BLACK (formatting)
+# -------------------------
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    lifeopsenv
+  | venv
+  | .venv
+  | build
+  | dist
+  | __pycache__
+  | .git
+)/
+'''
+
+# -------------------------
+# ISORT (imports)
+# -------------------------
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+skip = [
+    "lifeopsenv",
+    "venv",
+    ".venv",
+    "build",
+    "dist",
+    "__pycache__"
+]
+
+# -------------------------
+# MYPY (typing)
+# -------------------------
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_untyped_defs = false
+strict_optional = true
+show_error_codes = true
+
+# -------------------------
+# PYTEST (testing)
+# -------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --strict-markers --disable-warnings"
+asyncio_mode = "auto"
+pythonpath = ["."]
