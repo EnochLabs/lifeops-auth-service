@@ -4,7 +4,7 @@ version = "0.1.0"
 tag_format = "v$version"
 
 # -------------------------
-# BUILD SYSTEM (IMPORTANT for pip install -e .)
+# BUILD SYSTEM
 # -------------------------
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -20,10 +20,14 @@ description = "LifeOps Auth Service"
 requires-python = ">=3.11"
 
 # -------------------------
-# SETUPTOOLS (fix packaging + import issues)
+# SETUPTOOLS (FIXED - proper package discovery)
 # -------------------------
 [tool.setuptools]
-packages = ["app"]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
 
 # -------------------------
 # BLACK (formatting)
@@ -79,4 +83,3 @@ show_error_codes = true
 testpaths = ["tests"]
 addopts = "-v --strict-markers --disable-warnings"
 asyncio_mode = "auto"
-pythonpath = ["."]
